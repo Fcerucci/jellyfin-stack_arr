@@ -1,0 +1,68 @@
+services:
+
+  flaresolverr:
+
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+
+    container_name: flaresolverr
+
+    hostname: flaresolverr
+
+    restart: unless-stopped
+
+    environment:
+
+      - TZ=${TZ}
+
+      - LOG_LEVEL=info
+
+      - LOG_HTML=false
+
+      - CAPTCHA_SOLVER=none
+
+    volumes:
+
+      - ${CONFIG_PATH}/radarr:/config
+
+
+    shm_size: "2gb"
+
+    security_opt:
+      - no-new-privileges:true
+
+    networks:
+
+      - media
+    
+    expose:
+      - "8191"
+
+    healthcheck:
+
+      test: ["CMD","curl","-f","http://localhost:8191"]
+
+      interval: 30s
+
+      timeout: 10s
+
+      retries: 5
+
+    logging:
+
+      driver: json-file
+
+      options:
+
+        max-size: "10m"
+
+        max-file: "5"
+    
+    labels:
+
+      - "traefik.enable=false"
+
+networks:
+
+  media:
+
+    external: true

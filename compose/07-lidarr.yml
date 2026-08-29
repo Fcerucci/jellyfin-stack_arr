@@ -1,0 +1,82 @@
+services:
+
+  lidarr:
+
+    image: lscr.io/linuxserver/lidarr:latest
+
+    container_name: lidarr
+
+    hostname: lidarr
+
+    restart: unless-stopped
+
+    depends_on:
+
+      prowlarr:
+        condition: service_started
+
+    environment:
+
+      - TZ=${TZ}
+
+      - PUID=${PUID}
+
+      - PGID=${PGID}
+
+      - UMASK=002
+
+    volumes:
+
+      - ${CONFIG_PATH}/lidarr:/config
+
+      - ${DATA_PATH}:/data
+
+    ports:
+
+      - "8686:8686"
+
+    healthcheck:
+
+      test: ["CMD","curl","-fsS","http://localhost:8686/ping"]
+
+      interval: 30s
+
+      timeout: 10s
+
+      retries: 5
+
+      start_period: 30s
+
+    logging:
+
+      driver: json-file
+
+      options:
+
+        max-size: "10m"
+
+        max-file: "5"
+
+    labels:
+
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.lidarr.rule=Host(`lidarr.${DOMAIN}`)"
+
+      - "traefik.http.routers.lidarr.entrypoints=websecure"
+
+      - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
+
+    networks:
+
+      - media
+
+      - proxy
+
+networks:
+
+  media:
+    external: true
+
+  proxy:
+    external: true

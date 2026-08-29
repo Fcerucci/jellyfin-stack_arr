@@ -1,0 +1,91 @@
+services:
+
+  unpackerr:
+
+    image: golift/unpackerr:latest
+
+    container_name: unpackerr
+
+    hostname: unpackerr
+
+    restart: unless-stopped
+
+    security_opt:
+      - no-new-privileges:true
+
+    cap_drop:
+      - ALL
+
+    depends_on:
+
+      sonarr:
+        condition: service_started
+
+      radarr:
+        condition: service_started
+
+      lidarr:
+        condition: service_started
+
+    environment:
+
+      - TZ=${TZ}
+
+      - PUID=${PUID}
+
+      - PGID=${PGID}
+
+      # Caminhos
+      - UNPACKERR_FOLDER_0=/data/downloads/torrents/complete
+
+      # Sonarr
+      - UNPACKERR_SONARR_0_URL=http://sonarr:8989
+      - UNPACKERR_SONARR_0_API_KEY=${SONARR_API_KEY}
+
+      # Radarr
+      - UNPACKERR_RADARR_0_URL=http://radarr:7878
+      - UNPACKERR_RADARR_0_API_KEY=${RADARR_API_KEY}
+
+      # Lidarr
+      - UNPACKERR_LIDARR_0_URL=http://lidarr:8686
+      - UNPACKERR_LIDARR_0_API_KEY=${LIDARR_API_KEY}
+
+      # Intervalo de verificação
+      - UNPACK_INTERVAL=2m
+
+    volumes:
+
+      - ${DATA_PATH}:/data
+
+    healthcheck:
+
+      test: ["CMD", "pidof", "unpackerr"]
+      
+      interval: 30s
+      
+      timeout: 10s
+      
+      retries: 3
+
+    logging:
+
+      driver: json-file
+
+      options:
+
+        max-size: "10m"
+
+        max-file: "5"
+
+    labels:
+
+      - "traefik.enable=false"
+
+    networks:
+
+      - media
+
+networks:
+
+  media:
+    external: true

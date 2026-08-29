@@ -1,0 +1,83 @@
+services:
+
+  jellyseerr:
+
+    image: fallenbagel/jellyseerr:latest
+
+    container_name: jellyseerr
+
+    hostname: jellyseerr
+
+    restart: unless-stopped
+
+    depends_on:
+
+      jellyfin:
+        condition: service_started
+
+      sonarr:
+        condition: service_started
+
+      radarr:
+        condition: service_started
+
+    environment:
+
+      - TZ=${TZ}
+
+      - LOG_LEVEL=info
+
+    volumes:
+
+      - ${CONFIG_PATH}/jellyseerr:/app/config
+
+
+    ports:
+
+      - "5055:5055"
+
+    healthcheck:
+
+      test: ["CMD","wget","--spider","-q","http://localhost:5055/api/v1/status"]
+
+      interval: 30s
+
+      timeout: 10s
+
+      retries: 5
+
+      start_period: 60s
+
+    logging:
+
+      driver: json-file
+
+      options:
+
+        max-size: "10m"
+
+        max-file: "5"
+
+    labels:
+
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.${DOMAIN}`)"
+
+      - "traefik.http.routers.jellyseerr.entrypoints=websecure"
+
+      - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
+
+    networks:
+
+      - media
+
+      - proxy
+
+networks:
+
+  media:
+    external: true
+
+  proxy:
+    external: true

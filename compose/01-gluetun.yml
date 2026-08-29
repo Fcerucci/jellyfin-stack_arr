@@ -1,0 +1,98 @@
+services:
+
+  gluetun:
+    image: qmcgaw/gluetun:latest
+
+    container_name: gluetun
+
+    hostname: gluetun
+
+    restart: unless-stopped
+
+    cap_add:
+      - NET_ADMIN
+    
+    security_opt:
+      - no-new-privileges:true
+
+    devices:
+      - /dev/net/tun:/dev/net/tun
+
+    ports:
+      # qBittorrent
+      - "8080:8080"
+
+      # BitTorrent
+      - "6881:6881"
+      - "6881:6881/udp"
+
+    environment:
+      - TZ=${TZ}
+
+      - PUID=${PUID}
+
+      - PGID=${PGID}
+
+      # VPN
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+
+      # WireGuard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - WIREGUARD_PUBLIC_KEY=${WIREGUARD_PUBLIC_KEY}
+      - WIREGUARD_ENDPOINT_IP=${WIREGUARD_ENDPOINT_IP}
+      - WIREGUARD_ENDPOINT_PORT=${WIREGUARD_ENDPOINT_PORT}
+      - WIREGUARD_ALLOWED_IPS=${WIREGUARD_ALLOWED_IPS}
+
+      # Opcional (depende do provedor)
+      # - SERVER_COUNTRIES=${VPN_COUNTRY}
+
+      # Firewall (Kill Switch)
+      - FIREWALL=on
+
+      # Saúde
+      - HEALTH_TARGET_ADDRESSES=1.1.1.1:53
+
+      # DNS
+      # - DOT=off
+
+    volumes:
+      - ${CONFIG_PATH}/gluetun:/gluetun
+      - ${DATA_PATH}:/data
+
+
+    healthcheck:
+
+      test: ["CMD", "/gluetun-entrypoint", "healthcheck"]
+
+      interval: 30s
+
+      timeout: 10s
+
+      retries: 3
+    
+    logging:
+
+      driver: json-file
+
+      options:
+
+        max-size: "10m"
+
+        max-file: "5"
+
+    networks:
+      - vpn
+      - media
+
+    labels:
+      - "traefik.enable=false"
+
+networks:
+
+  vpn:
+    name: vpn
+
+  media:
+    external: true

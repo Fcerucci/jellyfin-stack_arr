@@ -1,0 +1,65 @@
+services:
+
+  recyclarr:
+
+    image: ghcr.io/recyclarr/recyclarr:8
+
+    container_name: recyclarr
+
+    hostname: recyclarr
+
+    restart: unless-stopped
+
+    security_opt:
+      - no-new-privileges:true
+
+    cap_drop:
+      - ALL
+
+    depends_on:
+
+      sonarr:
+        condition: service_started
+
+      radarr:
+        condition: service_started
+
+    environment:
+
+      - TZ=${TZ}
+
+    volumes:
+
+      - ${CONFIG_PATH}/recyclarr:/config
+
+
+    healthcheck:
+
+      test: ["CMD", "pgrep", "-f", "supercronic"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    logging:
+
+      driver: json-file
+
+      options:
+
+        max-size: "10m"
+
+        max-file: "5"
+
+    labels:
+
+      - "traefik.enable=false"
+
+    networks:
+
+      - media
+
+networks:
+
+  media:
+    external: true

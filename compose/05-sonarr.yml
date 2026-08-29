@@ -1,0 +1,82 @@
+services:
+
+  sonarr:
+
+    image: lscr.io/linuxserver/sonarr:latest
+
+    container_name: sonarr
+
+    hostname: sonarr
+
+    restart: unless-stopped
+
+    depends_on:
+
+      prowlarr:
+        condition: service_started
+
+    environment:
+
+      - TZ=${TZ}
+
+      - PUID=${PUID}
+
+      - PGID=${PGID}
+
+    volumes:
+
+      # Configuração
+      - ${CONFIG_PATH}/sonarr:/config
+
+      # Estrutura única de dados (Hardlinks)
+      - ${DATA_PATH}:/data
+
+    ports:
+
+      - "8989:8989"
+
+    healthcheck:
+
+      test: ["CMD","curl","-fsS","http://localhost:8989/ping"]
+
+      interval: 30s
+
+      timeout: 10s
+
+      retries: 5
+
+      start_period: 30s
+
+    logging:
+
+      driver: json-file
+
+      options:
+
+        max-size: "10m"
+
+        max-file: "5"
+
+    labels:
+
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN}`)"
+
+      - "traefik.http.routers.sonarr.entrypoints=websecure"
+
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+
+    networks:
+
+      - media
+
+      - proxy
+
+networks:
+
+  media:
+    external: true
+
+  proxy:
+    external: true

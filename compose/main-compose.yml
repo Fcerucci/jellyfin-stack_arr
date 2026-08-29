@@ -1,0 +1,11 @@
+name: homelab-media
+
+networks:
+
+  media:
+    name: media
+    external: true
+
+  proxy:
+    name: proxy
+    external: true
